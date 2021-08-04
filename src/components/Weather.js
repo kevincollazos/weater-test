@@ -1,4 +1,5 @@
 import React, { useEffect, useState} from 'react';
+import moment from 'moment';
 
 //API consume
 import superagent from 'superagent';
@@ -38,23 +39,28 @@ const Weather = () => {
      * 
     */
     const threeDaysWeater = async() =>{
-        try {
-            const city= "Bogota";
-            const res = await superagent.post(`${apiUrlForecast}q=${city}&APPID=${wheaterKey}&units=metric&cnt=32`);
-            
-            for (let i = 8; i < res.body.list.length; i+=8) {
-                console.log(res.body.list[i]);
-                /*setWeather3({
-                    tempMax: res.body.list[i].main.temp_max,
-                    tempMin: res.body.list[i].main.temp_min,
-                    date: res.body.list[i].dt_txt,
-                    weather: res.body.list[i].weather[0].main
-                });    */           
+            try {
+                const city= "Bogota";
+                const res = await superagent.post(`${apiUrlForecast}q=${city}&APPID=${wheaterKey}&units=metric&cnt=25`);           
+                ///*
+                const arr = []                
+                for (var i = 8; i < res.body.list.length; i+=8) { 
+                                                    
+                        const days = {
+                            date: res.body.list[i].dt_txt,
+                            tempMax: res.body.list[i].main.temp_max,
+                            tempMin: res.body.list[i].main.temp_min,
+                            weather: res.body.list[i].weather[0].main
+                        }  
+                        arr.push(days);               
+                }   
+                console.log("arr "+JSON.stringify(arr));
+                setWeather3(arr)
+                        
+            } catch (error) {
+                
             }
-        } catch (error) {
-            
-        }
-    }
+        };
 
     /**
      * Function to get Bogota weather
@@ -97,10 +103,10 @@ const Weather = () => {
     /**
      * Function to accepts Bogota and Paris weather
     */
-    useEffect( () => {
+    useEffect( () => {        
         bogotaWeather();
-        parisWeather();
-        threeDaysWeater();
+        parisWeather();         
+        threeDaysWeater();              
     }, [] )
 
     /**
@@ -136,7 +142,7 @@ const Weather = () => {
                     <p className="weatherText">{weatherBogota.weather}</p>
                 </div>
                 <div className="containerGrades">
-                    <p className="gradesText">{weatherBogota.temp}°</p>
+                    <p className="gradesText">{parseFloat(weatherBogota.temp).toFixed(1) }°</p>
                 </div>
                 <div className="bannerWheater">
                     <div className="divIconTxtBta">
@@ -150,13 +156,65 @@ const Weather = () => {
                     </div>
                 </div>
                 <div className="wrapper">
-                    <div>
-                        <b>3 Days</b> Forecast
-                        
+                    <div className="containerBrews">
+                        <div className="divTxt"><span><b>3 Days</b> Forecast</span></div>
+                        { weather3.length > 0 ?                                                
+                            weather3.map((day, key) =>{                                
+                                return(
+                                    <div className="divDaysWeather" key={key}> 
+                                    <div className="gradeFloat"><span className="textFloat">{parseFloat(day.tempMax).toFixed(1)}° / {parseFloat(day.tempMin).toFixed(1)}°</span></div>
+                                        { day.weather === "Clouds" ?
+                                            <img
+                                            className="iconsWeatherThreeBta"
+                                            alt={day.weather} 
+                                            width="20px"
+                                            height="20px"
+                                            src={cloudy} />
+                                        : day.weather === "Rain" ? 
+                                            <img
+                                            className="iconsWeatherThreeBta"
+                                            alt={day.weather} 
+                                            width="20px"
+                                            height="20px"
+                                            src={rain}/>
+                                        :
+                                            <img
+                                            className="iconsWeatherThreeBta"
+                                            alt={day.weather}
+                                            width="20px"
+                                            height="20px" 
+                                            src={clear}/>
+                                        }
+                                        <span className="txtThreeDays">{moment(day.date).format('dddd')}</span>
+                                        <span className="txtThreeWeather">{day.weather}</span>                                        
+                                    </div>
+                                )                                
+                            })
+                            :
+                            <div className="divAlert">
+                               <p  className="alertTxt">Se esta cargando la informacion</p>
+                            </div>
+                        }
                     </div>
-                    <div><b>Place to</b> Visit</div>
-                    <div>+ Top viewers</div>
-                    <div>
+                    <div className="containerBrews">
+                        <div className="divTxt"><span><b>Place to</b> Visit</span></div>
+                        <div className="placeImg">
+                            <span className="placeVisitTxt">Arab Street <br/>Singapore</span>
+                        </div>
+                    </div>
+                    <div className="containerBrews">
+                        <div className="divTxt"><span className="txtTopViews"><b>+</b> Top viewers</span></div>
+                        <div className="museumImg">
+                            <span className="placeVisitTxt">Art Science Museum</span>
+                        </div>
+                        <div className="fountainImg">
+                            <span className="placeVisitTxt">Fountain</span>
+                            <div className="buttonPlus">
+                                <span className="plusTxt">+</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div className="containerBrews">
                         <div className="divParisInfo">
                             <div className="wrapperParis">
                                 { weatherParis.weather === "Clouds" ?
@@ -181,7 +239,7 @@ const Weather = () => {
                                     height="45px" 
                                     src={clear}/>
                                 }                            
-                                <span className="weatherTextParis">{weatherParis.temp}°</span>                                
+                                <span className="weatherTextParis">{parseFloat(weatherParis.temp).toFixed(1)}°</span>                                
                                 <span className="textParis">
                                     {weatherParis.city} <br/>
                                     <span >{weatherParis.country}</span>
